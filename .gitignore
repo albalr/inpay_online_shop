@@ -4,17 +4,26 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile '~/.gitignore_global'
 
+# System files
+.DS_Store
+.idea/
+.vscode/
+
 # Ignore bundler config.
-/.bundle
+/bundle
 
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
 
+# Docker and environment
+.env
+docker-compose.override.yml
+
 # Ignore all logfiles and tempfiles.
 /log/*
-/tmp/*
 !/log/.keep
+/tmp/*
 !/tmp/.keep
 
 # Ignore pidfiles, but keep the directory.
@@ -22,14 +31,17 @@
 !/tmp/pids/
 !/tmp/pids/.keep
 
-# Ignore storage (uploaded files in development and any SQLite databases).
+# Local storage (Active Storage, etc.)
 /storage/*
 !/storage/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
 /tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
 
 /public/assets
 
-# Ignore master key for decrypting credentials and more.
+# Secret key
 /config/master.key
+/config/credentials.yml.enc
