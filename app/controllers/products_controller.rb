@@ -1,4 +1,10 @@
 class ProductsController < ApplicationController
+
+  # GET /products/new
+  def new
+    @product = Product.new
+  end
+
   # GET /products
   def index
     products = Product.all
@@ -21,17 +27,17 @@ class ProductsController < ApplicationController
 
   # POST /products
   def create
-    product = Product.new(product_params)
+    @product = Product.new(product_params)
 
-    if product.save
-      render json: product, status: :created
+    if @product.save
+      redirect_to root_path, notice: "Product created!"
     else
       # All required parameters are present, but validations failed
-      render json: { error: product.errors.full_messages }, status: :unprocessable_entity
+      redirect_to root_path, alert: @product.errors.full_messages.to_sentence
     end
   rescue ActionController::ParameterMissing => e
     # Required parameter is missing entirely
-    render json: { error: "Missing parameter: #{e.param}" }, status: :bad_request
+    redirect_to root_path, alert: "Missing parameter: #{e.param}"
   end
 
   private

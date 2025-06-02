@@ -1,0 +1,139 @@
+<html>
+<head>
+  <title>Inpay Online Shop</title>
+  <style>
+      body {
+          font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          background-color: #0C2228;
+          color: #ffffff;
+          margin: 0;
+          padding: 4rem 2rem 2rem;
+      }
+
+      h1 {
+          font-size: 2.5rem;
+          margin-bottom: 1.5rem;
+      }
+
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          background: #122e35;
+          border-radius: 10px;
+          margin-bottom: 2rem;
+      }
+
+      th, td {
+          padding: 1rem;
+          text-align: left;
+          border-bottom: 1px solid #1f3a41;
+      }
+
+      th {
+          background-color: #122e35;
+          color: #3DF68F;
+          font-weight: 600;
+      }
+
+      td input[type="number"] {
+          width: 70px;
+          padding: 0.4rem;
+          border: 1px solid #3DF68F;
+          border-radius: 4px;
+          background-color: #0C2228;
+          color: #fff;
+      }
+
+      .submit-button {
+          background-color: #3DF68F;
+          color: #0C2228;
+          padding: 0.75rem 1.5rem;
+          font-size: 1rem;
+          border: none;
+          border-radius: 25px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: background-color 0.3s;
+      }
+
+      .submit-button:hover {
+          background-color: #30c677;
+      }
+
+      .no-products {
+          font-style: italic;
+          color: #aaa;
+      }
+
+      .admin-button {
+          background-color: transparent;
+          border: 2px solid #3DF68F;
+          color: #3DF68F;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          cursor: pointer;
+          font-weight: bold;
+          text-decoration: none;
+      }
+
+      .admin-button:hover {
+          background-color: #3DF68F;
+          color: #0C2228;
+      }
+  </style>
+</head>
+
+<body>
+
+<!-- Header + Admin Buttons -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <h1 style="margin: 0;">Inpay Online Shop</h1>
+
+  <% if params[:admin] == "true" %>
+    <div>
+      <%= link_to "Exit Admin", url_for(params.permit!.to_h.except("admin")), class: "admin-button" %>
+      <%= link_to "Create Product", new_product_path, class: "admin-button", style: "margin-left: 10px;" %>
+    </div>
+  <% else %>
+    <div>
+      <%= link_to "Admin Access", url_for(params.permit!.to_h.merge(admin: "true")), class: "admin-button" %>
+    </div>
+  <% end %>
+</div>
+<div style="clear: both; margin-bottom: 1.5rem;"></div>
+
+<!-- Product Table -->
+<% if @products.any? %>
+  <%= form_with url: orders_path, method: :post, local: true do %>
+    <table>
+      <thead>
+      <tr>
+        <th>Product</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Quantity</th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @products.each do |product| %>
+        <tr>
+          <td><%= product.name %></td>
+          <td><%= product.description %></td>
+          <td>DKK <%= product.price %></td>
+          <td>
+            <%= number_field_tag "items[][product_id]", product.id, hidden: true %>
+            <%= number_field_tag "items[][quantity]", 0, min: 0, max: product.stock_quantity %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <%= submit_tag "Place Order", class: "submit-button" %>
+  <% end %>
+<% else %>
+  <p class="no-products">No products available.</p>
+<% end %>
+
+</body>
+</html>
