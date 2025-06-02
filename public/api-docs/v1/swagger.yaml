@@ -34,6 +34,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
+        '400':
+          description: Bad Request - Missing required parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable Entity - Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /products/{id}:
     get:
@@ -54,6 +66,10 @@ paths:
                 $ref: '#/components/schemas/Product'
         '404':
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /orders:
     get:
@@ -85,6 +101,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request - Missing required parameter or invalid quantity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable Entity - Validation failed or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /orders/{id}:
     get:
@@ -105,6 +139,10 @@ paths:
                 $ref: '#/components/schemas/Order'
         '404':
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -113,15 +151,28 @@ components:
       properties:
         id:
           type: integer
+          example: 1
         name:
           type: string
+          example: "iPhone 13"
         description:
           type: string
+          example: "Latest iPhone model with A15 Bionic chip"
         price:
           type: number
           format: float
+          minimum: 0
+          example: 999.99
         stock_quantity:
           type: integer
+          minimum: 0
+          example: 50
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     NewProduct:
       type: object
@@ -129,28 +180,46 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
+          example: "iPhone 15"
         description:
           type: string
+          example: "Latest iPhone model with A15 Bionic chip"
         price:
           type: number
           format: float
+          minimum: 0
+          example: 999.99
         stock_quantity:
           type: integer
+          minimum: 0
+          example: 50
 
     Order:
       type: object
       properties:
         id:
           type: integer
+          example: 1
         status:
           type: string
+          enum: [pending, processing, completed, cancelled]
+          example: "pending"
         total_amount:
           type: number
           format: float
+          minimum: 0
+          example: 1999.98
         order_items:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     NewOrder:
       type: object
@@ -158,16 +227,28 @@ components:
       properties:
         items:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/NewOrderItem'
 
     OrderItem:
       type: object
       properties:
+        id:
+          type: integer
+          example: 1
         product:
           $ref: '#/components/schemas/Product'
         quantity:
           type: integer
+          minimum: 1
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     NewOrderItem:
       type: object
@@ -175,5 +256,21 @@ components:
       properties:
         product_id:
           type: integer
+          minimum: 1
+          example: 1
         quantity:
           type: integer
+          minimum: 1
+          example: 2
+
+    Error:
+      type: object
+      properties:
+        error:
+          oneOf:
+            - type: string
+              example: "Product with id 999 not found"
+            - type: array
+              items:
+                type: string
+              example: ["Name can't be blank", "Price must be greater than 0"]
