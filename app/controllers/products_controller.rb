@@ -29,43 +29,35 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
 
-    if request.format.json?
+    respond_to do |format|
       if @product.save
-        render json: @product, status: :created
+        format.html { redirect_to root_path, notice: "Product created!" }
+        format.json { render json: @product, status: :created }
       else
-        render json: { error: @product.errors.full_messages }, status: :unprocessable_entity
-      end
-    else
-      if @product.save
-        redirect_to root_path, notice: "Product created!"
-      else
-        redirect_to root_path, alert: @product.errors.full_messages.to_sentence
+        format.html { redirect_to root_path, alert: @product.errors.full_messages.to_sentence }
+        format.json { render json: { error: @product.errors.full_messages }, status: :unprocessable_entity }
       end
     end
   rescue ActionController::ParameterMissing => e
-    if request.format.json?
-      render json: { error: "Missing parameter: #{e.param}" }, status: :unprocessable_entity
-    else
-      redirect_to root_path, alert: "Missing parameter: #{e.param}"
-    end
+    # Required parameter is missing entirely
+    redirect_to root_path, alert: "Missing parameter: #{e.param}"
   end
 
   # DELETE /products/:id
   def destroy
     product = Product.find_by(id: params[:id])
-    if request.format.json?
-      if product
-        product.update(archived: true)
-        render json: { message: "Product deleted successfully" }, status: :ok
-      else
-        render json: { error: "Product not found" }, status: :not_found
+
+    if product
+      product.update(archived: true)
+
+      respond_to do |format|
+        format.html { redirect_back fallback_location: root_path, notice: "Product deleted successfully" }
+        format.json { render json: { message: "Product deleted successfully" }, status: :ok }
       end
     else
-      if product
-        product.update(archived: true)
-        redirect_back fallback_location: root_path, notice: "Product deleted successfully"
-      else
-        redirect_back fallback_location: root_path, alert: "Product not found"
+      respond_to do |format|
+        format.html { redirect_back fallback_location: root_path, alert: "Product not found" }
+        format.json { render json: { error: "Product not found" }, status: :not_found }
       end
     end
   end
