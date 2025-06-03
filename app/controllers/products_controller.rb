@@ -7,7 +7,7 @@ class ProductsController < ApplicationController
 
   # GET /products
   def index
-    products = Product.all
+    products = Product.where(archived: [false, nil])
     if products.empty?
       render json: { error: 'No products found' }, status: :not_found
     else
@@ -17,7 +17,7 @@ class ProductsController < ApplicationController
 
   # GET /products/:id
   def show
-    product = Product.find_by(id: params[:id])
+    product = Product.find_by(id: params[:id], archived: [false, nil])
     if product
       render json: product
     else
@@ -29,15 +29,45 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
 
-    if @product.save
-      redirect_to root_path, notice: "Product created!"
+    if request.format.json?
+      if @product.save
+        render json: @product, status: :created
+      else
+        render json: { error: @product.errors.full_messages }, status: :unprocessable_entity
+      end
     else
-      # All required parameters are present, but validations failed
-      redirect_to root_path, alert: @product.errors.full_messages.to_sentence
+      if @product.save
+        redirect_to root_path, notice: "Product created!"
+      else
+        redirect_to root_path, alert: @product.errors.full_messages.to_sentence
+      end
     end
   rescue ActionController::ParameterMissing => e
-    # Required parameter is missing entirely
-    redirect_to root_path, alert: "Missing parameter: #{e.param}"
+    if request.format.json?
+      render json: { error: "Missing parameter: #{e.param}" }, status: :unprocessable_entity
+    else
+      redirect_to root_path, alert: "Missing parameter: #{e.param}"
+    end
+  end
+
+  # DELETE /products/:id
+  def destroy
+    product = Product.find_by(id: params[:id])
+    if request.format.json?
+      if product
+        product.update(archived: true)
+        render json: { message: "Product deleted successfully" }, status: :ok
+      else
+        render json: { error: "Product not found" }, status: :not_found
+      end
+    else
+      if product
+        product.update(archived: true)
+        redirect_back fallback_location: root_path, notice: "Product deleted successfully"
+      else
+        redirect_back fallback_location: root_path, alert: "Product not found"
+      end
+    end
   end
 
   private

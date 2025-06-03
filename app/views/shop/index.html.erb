@@ -46,7 +46,7 @@
           color: #fff;
       }
 
-      .admin-button, .submit-button, .add-button {
+      .admin-button, .submit-button, .add-button, .remove-button {
           background-color: transparent;
           border: 2px solid #3DF68F;
           color: #3DF68F;
@@ -58,7 +58,7 @@
           transition: all 0.3s;
       }
 
-      .admin-button:hover, .submit-button:hover, .add-button:hover {
+      .admin-button:hover, .submit-button:hover, .add-button:hover, .remove-button:hover {
           background-color: #3DF68F;
           color: #0C2228;
       }
@@ -99,6 +99,9 @@
     <th>Stock</th>
     <th>Quantity</th>
     <th></th>
+    <% if params[:admin] == "true" %>
+      <th></th>
+    <% end %>
   </tr>
   </thead>
   <tbody>
@@ -110,6 +113,11 @@
       <td><%= product.stock_quantity %></td>
       <td><input type="number" id="qty_<%= product.id %>" min="1" max="<%= product.stock_quantity %>" value="1"></td>
       <td><button class="add-button" onclick="addToCart(<%= product.id %>, '<%= j product.name %>')">Add to Cart</button></td>
+      <% if params[:admin] == "true" %>
+        <td>
+          <%= button_to "Remove", product_path(product), method: :delete, data: { confirm: "Are you sure?" }, class: "remove-button", form: { style: "display:inline;" } %>
+        </td>
+      <% end %>
     </tr>
   <% end %>
   </tbody>
@@ -124,6 +132,7 @@
       <th style="color:#3DF68F;">Price</th>
       <th style="color:#3DF68F;">Quantity</th>
       <th style="color:#3DF68F;">Subtotal</th>
+      <th></th>
     </tr>
     </thead>
     <tbody id="cart-items"></tbody>
@@ -155,6 +164,11 @@
         quantityInput.value = 1;
     }
 
+    function removeFromCart(productId) {
+        cart = cart.filter(item => item.product_id !== productId);
+        renderCart();
+    }
+
     function renderCart() {
         const list = document.getElementById("cart-items");
         list.innerHTML = "";
@@ -166,20 +180,24 @@
 
             const row = document.createElement("tr");
             row.innerHTML = `
-      <td>${item.name}</td>
-      <td>DKK ${item.price.toFixed(2)}</td>
-      <td>${item.quantity}</td>
-      <td>DKK ${subtotal.toFixed(2)}</td>
-    `;
+              <td>${item.name}</td>
+              <td>DKK ${item.price.toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td>DKK ${subtotal.toFixed(2)}</td>
+              <td><button class="remove-button" onclick="removeFromCart(${item.product_id})">Remove</button></td>
+            `;
             list.appendChild(row);
         });
 
-        const totalRow = document.createElement("tr");
-        totalRow.innerHTML = `
-    <td colspan="3" style="text-align: right; font-weight: bold; padding-top: 1rem;">Total:</td>
-    <td style="font-weight: bold; padding-top: 1rem;">DKK ${total.toFixed(2)}</td>
-  `;
-        list.appendChild(totalRow);
+        if (cart.length > 0) {
+            const totalRow = document.createElement("tr");
+            totalRow.innerHTML = `
+              <td colspan="3" style="text-align: right; font-weight: bold; padding-top: 1rem;">Total:</td>
+              <td style="font-weight: bold; padding-top: 1rem;">DKK ${total.toFixed(2)}</td>
+              <td></td>
+            `;
+            list.appendChild(totalRow);
+        }
     }
 
     function submitCart() {

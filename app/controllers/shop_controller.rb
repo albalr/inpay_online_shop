@@ -1,5 +1,5 @@
 class ShopController < ApplicationController
   def index
-    @products = Product.all
+    @products = Product.where(archived: [false, nil])
   end
 end
