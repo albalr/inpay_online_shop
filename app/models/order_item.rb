@@ -10,7 +10,7 @@ class OrderItem < ApplicationRecord
   def quantity_less_than_or_equal_to_product_stock
     return unless product && quantity # if product and quantity are not present, return
     if quantity > product.stock_quantity
-      errors.add(:quantity, "exceeds product stock")
+      errors.add(:quantity, "Exceeds product stock")
     end
   end
 end
