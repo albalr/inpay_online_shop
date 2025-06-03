@@ -34,8 +34,14 @@ class OrdersController < ApplicationController
           product = Product.find(product_id)
           order.order_items.create!(product: product, quantity: quantity)
           # Decrement stock_quantity
-          product.stock_quantity -= quantity.to_i
-          product.save!
+          new_quantity = product.stock_quantity - quantity.to_i
+
+          if new_quantity == 0
+            product.update_columns(stock_quantity: 0, archived: true)
+          else
+            product.update(stock_quantity: new_quantity)
+          end
+          product.save
         end
 
         total = order.order_items.includes(:product).sum do |oi|

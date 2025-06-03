@@ -7,13 +7,13 @@ class ProductsController < ApplicationController
 
   # GET /products
   def index
-    products = Product.where(archived: [false, nil])
+    products = Product.where(archived: false)
     render json: products
   end
 
   # GET /products/:id
   def show
-    product = Product.find_by(id: params[:id], archived: [false, nil])
+    product = Product.find_by(id: params[:id], archived: false)
     if product
       render json: product
     else
@@ -41,7 +41,7 @@ class ProductsController < ApplicationController
 
   # PUT /products/:id
   def update
-    product = Product.find_by(id: params[:id], archived: [false, nil])
+    product = Product.find_by(id: params[:id], archived: false)
     if product
       if product.update(product_params)
         render json: product, status: :ok
@@ -55,7 +55,7 @@ class ProductsController < ApplicationController
 
   # DELETE /products/:id
   def destroy
-    product = Product.find_by(id: params[:id])
+    product = Product.find_by(id: params[:id], archived: false)
 
     if product
       product.update(archived: true)
@@ -79,3 +79,4 @@ class ProductsController < ApplicationController
     params.require(:product).permit(:name, :description, :price, :stock_quantity)
   end
 end
+
