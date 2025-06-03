@@ -39,6 +39,20 @@ class ProductsController < ApplicationController
     redirect_to root_path, alert: "Missing parameter: #{e.param}"
   end
 
+  # PUT /products/:id
+  def update
+    product = Product.find_by(id: params[:id], archived: [false, nil])
+    if product
+      if product.update(product_params)
+        render json: product, status: :ok
+      else
+        render json: { error: product.errors.full_messages }, status: :unprocessable_entity
+      end
+    else
+      render json: { error: "Product with id #{params[:id]} not found" }, status: :not_found
+    end
+  end
+
   # DELETE /products/:id
   def destroy
     product = Product.find_by(id: params[:id])
