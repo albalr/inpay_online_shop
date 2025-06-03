@@ -80,14 +80,15 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
   <h1 style="margin: 0;">Inpay Online Shop</h1>
 
-  <% if params[:admin] == "true" %>
-    <div>
+  <div>
+    <%= link_to "My Orders", orders_path, class: "admin-button", style: "margin-right: 10px;" %>
+    <% if params[:admin] == "true" %>
       <%= link_to "Exit Admin", url_for(params.permit!.to_h.except("admin")), class: "admin-button" %>
       <%= link_to "Create Product", new_product_path, class: "admin-button", style: "margin-left: 10px;" %>
-    </div>
-  <% else %>
-    <%= link_to "Admin Access", url_for(params.permit!.to_h.merge(admin: "true")), class: "admin-button" %>
-  <% end %>
+    <% else %>
+      <%= link_to "Admin Access", url_for(params.permit!.to_h.merge(admin: "true")), class: "admin-button" %>
+    <% end %>
+  </div>
 </div>
 
 <table>

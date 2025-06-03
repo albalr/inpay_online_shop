@@ -2,11 +2,17 @@ class OrdersController < ApplicationController
 
   # GET /orders
   def index
-    orders = Order.includes(order_items: :product).all
-    if orders.empty?
-      render json: { error: 'No orders found' }, status: :not_found
-    else
-      render json: orders.to_json(include: { order_items: { include: :product } })
+    @orders = Order.includes(order_items: :product).all
+
+    respond_to do |format|
+      format.html
+      format.json do
+        if @orders.empty?
+          render json: { error: 'No orders found' }, status: :not_found
+        else
+          render json: @orders.to_json(include: { order_items: { include: :product } })
+        end
+      end
     end
   end
 
@@ -30,37 +36,50 @@ class OrdersController < ApplicationController
 
         params[:items].each do |item|
           product_id = item[:product_id]
-          quantity = item[:quantity]
-          product = Product.find(product_id)
+          quantity = item[:quantity].to_i
+          product = Product.find_by(id: product_id, archived: false)
+
           order.order_items.create!(product: product, quantity: quantity)
-          # Decrement stock_quantity
-          new_quantity = product.stock_quantity - quantity.to_i
+
+          new_quantity = product.stock_quantity - quantity
 
           if new_quantity == 0
             product.update_columns(stock_quantity: 0, archived: true)
           else
-            product.update(stock_quantity: new_quantity)
+            product.update!(stock_quantity: new_quantity)
           end
-          product.save
         end
 
         total = order.order_items.includes(:product).sum do |oi|
           oi.quantity * oi.product.price
         end
-        order.update(total_amount: total)
 
-        render json: order.to_json(include: { order_items: { include: :product } }), status: :created
+        order.update!(total_amount: total)
+
+        respond_to do |format|
+          format.html { redirect_back fallback_location: root_path, notice: "Order created successfully" }
+          format.json { render json: order.to_json(include: { order_items: { include: :product } }), status: :created }
+        end
 
       rescue ActiveRecord::RecordNotFound
         order.destroy
-        render json: { error: "Product with id #{product_id} not found" }, status: :unprocessable_entity
+        respond_to do |format|
+          format.html { redirect_back fallback_location: root_path, alert: "Product with id #{product_id} not found" }
+          format.json { render json: { error: "Product with id #{product_id} not found" }, status: :unprocessable_entity }
+        end
 
       rescue => e
         order.destroy
-        render json: { error: "Error creating order: #{e.message}" }, status: :unprocessable_entity
+        respond_to do |format|
+          format.html { redirect_back fallback_location: root_path, alert: "Error creating order: #{e.message}" }
+          format.json { render json: { error: "Error creating order: #{e.message}" }, status: :unprocessable_entity }
+        end
       end
     else
-      render json: { error: order.errors.full_messages }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { redirect_back fallback_location: root_path, alert: order.errors.full_messages.to_sentence }
+        format.json { render json: { error: order.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 end
