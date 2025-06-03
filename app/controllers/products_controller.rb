@@ -8,11 +8,7 @@ class ProductsController < ApplicationController
   # GET /products
   def index
     products = Product.where(archived: [false, nil])
-    if products.empty?
-      render json: { error: 'No products found' }, status: :not_found
-    else
-      render json: products
-    end
+    render json: products
   end
 
   # GET /products/:id
