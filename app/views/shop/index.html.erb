@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
   <title>Inpay Online Shop</title>
+  <meta name="csrf-token" content="<%= form_authenticity_token %>">
   <style>
       body {
           font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -35,37 +37,16 @@
           font-weight: 600;
       }
 
-      td input[type="number"] {
-          width: 70px;
-          padding: 0.4rem;
+      input[type="number"] {
+          width: 60px;
+          padding: 0.3rem;
           border: 1px solid #3DF68F;
           border-radius: 4px;
           background-color: #0C2228;
           color: #fff;
       }
 
-      .submit-button {
-          background-color: #3DF68F;
-          color: #0C2228;
-          padding: 0.75rem 1.5rem;
-          font-size: 1rem;
-          border: none;
-          border-radius: 25px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: background-color 0.3s;
-      }
-
-      .submit-button:hover {
-          background-color: #30c677;
-      }
-
-      .no-products {
-          font-style: italic;
-          color: #aaa;
-      }
-
-      .admin-button {
+      .admin-button, .submit-button, .add-button {
           background-color: transparent;
           border: 2px solid #3DF68F;
           color: #3DF68F;
@@ -74,18 +55,28 @@
           cursor: pointer;
           font-weight: bold;
           text-decoration: none;
+          transition: all 0.3s;
       }
 
-      .admin-button:hover {
+      .admin-button:hover, .submit-button:hover, .add-button:hover {
           background-color: #3DF68F;
           color: #0C2228;
+      }
+
+      .cart-preview {
+          background: #122e35;
+          border-radius: 10px;
+          padding: 1rem;
+          margin-top: 2rem;
+      }
+
+      .cart-preview h2 {
+          color: #3DF68F;
       }
   </style>
 </head>
 
 <body>
-
-<!-- Header + Admin Buttons -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
   <h1 style="margin: 0;">Inpay Online Shop</h1>
 
@@ -95,45 +86,134 @@
       <%= link_to "Create Product", new_product_path, class: "admin-button", style: "margin-left: 10px;" %>
     </div>
   <% else %>
-    <div>
-      <%= link_to "Admin Access", url_for(params.permit!.to_h.merge(admin: "true")), class: "admin-button" %>
-    </div>
+    <%= link_to "Admin Access", url_for(params.permit!.to_h.merge(admin: "true")), class: "admin-button" %>
   <% end %>
 </div>
-<div style="clear: both; margin-bottom: 1.5rem;"></div>
 
-<!-- Product Table -->
-<% if @products.any? %>
-  <%= form_with url: orders_path, method: :post, local: true do %>
-    <table>
-      <thead>
-      <tr>
-        <th>Product</th>
-        <th>Description</th>
-        <th>Price</th>
-        <th>Quantity</th>
-      </tr>
-      </thead>
-      <tbody>
-      <% @products.each do |product| %>
-        <tr>
-          <td><%= product.name %></td>
-          <td><%= product.description %></td>
-          <td>DKK <%= product.price %></td>
-          <td>
-            <%= number_field_tag "items[][product_id]", product.id, hidden: true %>
-            <%= number_field_tag "items[][quantity]", 0, min: 0, max: product.stock_quantity %>
-          </td>
-        </tr>
-      <% end %>
-      </tbody>
-    </table>
-
-    <%= submit_tag "Place Order", class: "submit-button" %>
+<table>
+  <thead>
+  <tr>
+    <th>Product</th>
+    <th>Description</th>
+    <th>Price</th>
+    <th>Stock</th>
+    <th>Quantity</th>
+    <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @products.each do |product| %>
+    <tr>
+      <td><%= product.name %></td>
+      <td><%= product.description %></td>
+      <td>DKK <%= product.price %></td>
+      <td><%= product.stock_quantity %></td>
+      <td><input type="number" id="qty_<%= product.id %>" min="1" max="<%= product.stock_quantity %>" value="1"></td>
+      <td><button class="add-button" onclick="addToCart(<%= product.id %>, '<%= j product.name %>')">Add to Cart</button></td>
+    </tr>
   <% end %>
-<% else %>
-  <p class="no-products">No products available.</p>
-<% end %>
+  </tbody>
+</table>
 
+<div class="cart-preview" id="cart">
+  <h2>Cart</h2>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+    <thead>
+    <tr>
+      <th style="color:#3DF68F;">Product</th>
+      <th style="color:#3DF68F;">Price</th>
+      <th style="color:#3DF68F;">Quantity</th>
+      <th style="color:#3DF68F;">Subtotal</th>
+    </tr>
+    </thead>
+    <tbody id="cart-items"></tbody>
+  </table>
+  <div style="text-align: right; margin-top: 1rem;">
+    <button class="submit-button" onclick="submitCart()">Place Order</button>
+  </div>
+</div>
+
+<script>
+    let cart = [];
+
+    function addToCart(productId, productName) {
+        const quantityInput = document.getElementById(`qty_${productId}`);
+        const quantity = parseInt(quantityInput.value);
+        const priceCell = quantityInput.closest("tr").querySelector("td:nth-child(3)");
+        const price = parseFloat(priceCell.textContent.replace("DKK", "").trim());
+
+        if (!quantity || quantity <= 0) return;
+
+        const existing = cart.find(item => item.product_id === productId);
+        if (existing) {
+            existing.quantity += quantity;
+        } else {
+            cart.push({ product_id: productId, quantity, name: productName, price });
+        }
+
+        renderCart();
+        quantityInput.value = 1;
+    }
+
+    function renderCart() {
+        const list = document.getElementById("cart-items");
+        list.innerHTML = "";
+        let total = 0;
+
+        cart.forEach(item => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+      <td>${item.name}</td>
+      <td>DKK ${item.price.toFixed(2)}</td>
+      <td>${item.quantity}</td>
+      <td>DKK ${subtotal.toFixed(2)}</td>
+    `;
+            list.appendChild(row);
+        });
+
+        const totalRow = document.createElement("tr");
+        totalRow.innerHTML = `
+    <td colspan="3" style="text-align: right; font-weight: bold; padding-top: 1rem;">Total:</td>
+    <td style="font-weight: bold; padding-top: 1rem;">DKK ${total.toFixed(2)}</td>
+  `;
+        list.appendChild(totalRow);
+    }
+
+    function submitCart() {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/orders";
+
+        const csrf = document.querySelector("meta[name='csrf-token']");
+        if (csrf) {
+            const token = document.createElement("input");
+            token.type = "hidden";
+            token.name = "authenticity_token";
+            token.value = csrf.content;
+            form.appendChild(token);
+        }
+
+        cart.forEach(item => {
+            const pid = document.createElement("input");
+            pid.type = "hidden";
+            pid.name = "items[][product_id]";
+            pid.value = item.product_id;
+
+            const qty = document.createElement("input");
+            qty.type = "hidden";
+            qty.name = "items[][quantity]";
+            qty.value = item.quantity;
+
+            form.appendChild(pid);
+            form.appendChild(qty);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
 </body>
 </html>
