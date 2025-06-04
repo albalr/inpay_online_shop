@@ -40,12 +40,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Missing required parameter"
         '422':
           description: Unprocessable Entity - Validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Price can't be blank, Price must be greater than 0"
 
   /products/{id}:
     get:
@@ -98,18 +102,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Missing required parameter"
         '404':
           description: Product not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Product with id 999 not found"
         '422':
           description: Unprocessable Entity - Validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Price can't be blank, Price must be greater than 0"
     delete:
       summary: Delete a product by ID
       tags: [Products]
@@ -168,23 +178,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '400':
-          description: Bad Request - Missing required parameter or invalid quantity
+          description: Bad Request - Missing required parameter
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Missing required parameter"
         '404':
           description: Not Found - Product not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Product with id 999 not found"
         '422':
-          description: Unprocessable Entity - Validation failed or insufficient stock
+          description: Unprocessable Entity - Validation failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: "Quantity can't be blank, Quantity must be greater than 0"
 
   /orders/{id}:
     get:
@@ -217,22 +233,25 @@ components:
       properties:
         id:
           type: integer
-          example: 1
+          example: 36
         name:
           type: string
-          example: "iPhone 13"
+          example: "adeu"
         description:
           type: string
-          example: "Latest iPhone model with A15 Bionic chip"
+          example: "no"
         price:
           type: number
           format: float
           minimum: 0
-          example: 999.99
+          example: 2.0
         stock_quantity:
           type: integer
           minimum: 0
-          example: 50
+          example: 3
+        archived:
+          type: boolean
+          example: false
         created_at:
           type: string
           format: date-time
@@ -240,46 +259,48 @@ components:
           type: string
           format: date-time
 
-    NewProduct:
-      type: object
-      required: [name, price, stock_quantity]
-      properties:
-        name:
-          type: string
-          minLength: 1
-          example: "iPhone 15"
-        description:
-          type: string
-          example: "Latest iPhone model with A15 Bionic chip"
-        price:
-          type: number
-          format: float
-          minimum: 0
-          example: 999.99
-        stock_quantity:
-          type: integer
-          minimum: 0
-          example: 50
-
     Order:
       type: object
       properties:
         id:
           type: integer
-          example: 1
+          example: 60
         status:
           type: string
           enum: [pending, processing, completed, cancelled]
           example: "pending"
         total_amount:
-          type: number
-          format: float
-          minimum: 0
-          example: 1999.98
+          type: string
+          example: "2.0"
         order_items:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 38
+        order_id:
+          type: integer
+          example: 60
+        product_id:
+          type: integer
+          example: 36
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+        product:
+          $ref: '#/components/schemas/Product'
         created_at:
           type: string
           format: date-time
@@ -297,25 +318,6 @@ components:
           items:
             $ref: '#/components/schemas/NewOrderItem'
 
-    OrderItem:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        product:
-          $ref: '#/components/schemas/Product'
-        quantity:
-          type: integer
-          minimum: 1
-          example: 2
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
     NewOrderItem:
       type: object
       required: [product_id, quantity]
@@ -323,11 +325,32 @@ components:
         product_id:
           type: integer
           minimum: 1
-          example: 1
+          example: 36
         quantity:
           type: integer
           minimum: 1
-          example: 2
+          example: 1
+
+    NewProduct:
+      type: object
+      required: [name, price, stock_quantity]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Product Name"
+        description:
+          type: string
+          example: "Description of the product"
+        price:
+          type: number
+          format: float
+          minimum: 0
+          example: 2.0
+        stock_quantity:
+          type: integer
+          minimum: 0
+          example: 3
 
     Error:
       type: object
@@ -339,4 +362,4 @@ components:
             - type: array
               items:
                 type: string
-              example: ["Name can't be blank", "Price must be greater than 0"]
+              example: ["Price can't be blank", "Price must be greater than 0"]
