@@ -73,7 +73,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
   # Parameters for product creation
   def product_params
     params.require(:product).permit(:name, :description, :price, :stock_quantity)

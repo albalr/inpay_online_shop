@@ -34,19 +34,20 @@ class OrdersController < ApplicationController
       begin
         product_id = nil
 
+        # Iterate through each item in the params
         params[:items].each do |item|
           product_id = item[:product_id]
           quantity = item[:quantity].to_i
           product = Product.find_by(id: product_id, archived: false)
 
-          order.order_items.create!(product: product, quantity: quantity)
+          order.order_items.create(product: product, quantity: quantity)
 
+          # Update the stock quantity of the product
           new_quantity = product.stock_quantity - quantity
-
           if new_quantity == 0
             product.update_columns(stock_quantity: 0, archived: true)
           else
-            product.update!(stock_quantity: new_quantity)
+            product.update(stock_quantity: new_quantity)
           end
         end
 
@@ -54,7 +55,7 @@ class OrdersController < ApplicationController
           oi.quantity * oi.product.price
         end
 
-        order.update!(total_amount: total)
+        order.update(total_amount: total)
 
         respond_to do |format|
           format.html { redirect_back fallback_location: root_path, notice: "Order created successfully" }
