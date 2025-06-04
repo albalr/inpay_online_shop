@@ -51,7 +51,7 @@ docker compose run web rails db:create db:migrate
 
 ### 4. Access the application
 
-- **Shop UI:** [http://localhost:3000/shop](http://localhost:3000/shop)
+- **Shop UI:** [http://localhost:3000](http://localhost:3000)
 - **API Docs:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
 
 ---
