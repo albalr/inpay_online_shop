@@ -1,0 +1,124 @@
+/* Base Styles */
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #0C2228;
+    color: #ffffff;
+    margin: 0;
+    padding: 4rem 2rem 2rem;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+h1.text-accent,
+h2.text-accent {
+    color: #3DF68F;
+}
+
+/* Buttons */
+.button,
+.admin-button,
+.submit-button,
+.add-button,
+.remove-button {
+    display: inline-block;
+    background-color: transparent;
+    border: 2px solid #3DF68F;
+    color: #3DF68F;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.button:hover,
+.admin-button:hover,
+.submit-button:hover,
+.add-button:hover,
+.remove-button:hover {
+    background-color: #3DF68F;
+    color: #0C2228;
+}
+
+/* Card */
+.card,
+.order-card,
+.cart-preview {
+    background: #122e35;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.order-card p strong {
+    color: #3DF68F;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #122e35;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #1f3a41;
+}
+
+th {
+    background-color: #122e35;
+    color: #3DF68F;
+    font-weight: 600;
+}
+
+/* Forms */
+form > div {
+    margin-bottom: 1.5rem;
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+input[type="number"] {
+    padding: 0.5rem;
+    border: 1px solid #3DF68F;
+    border-radius: 4px;
+    background-color: #0C2228;
+    color: #fff;
+    margin-top: 0.5rem;
+    width: 25%;
+}
+
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #3DF68F;
+    border-radius: 4px;
+    background-color: #0C2228;
+    color: #fff;
+    margin-top: 0.5rem;
+}
+
+/* Lists */
+.order-items {
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+}
+
+.order-items li {
+    margin-bottom: 0.5rem;
+}
